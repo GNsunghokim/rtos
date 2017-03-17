@@ -8,11 +8,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "../../../../../TLSF/src/tlsf.h"
-#include "../../../../../core/include/util/ring.h"
+#include "../../../../../tlsf/include/tlsf.h"
+#include "../../../../../ext/include/util/ring.h"
 
 char **environ;
-// void* __malloc_pool; Moved to libcore
 extern void* __malloc_pool;
 uint64_t __pid;
 
@@ -127,7 +126,7 @@ caddr_t _sbrk_r(struct _reent* r, int incr) {
 
 	prev_heap_end = heap_end;
 	heap_end += incr;
-	
+
 	return (caddr_t)prev_heap_end;
 }
 
@@ -148,14 +147,14 @@ inline static uint64_t cpu_tsc() {
 
 clock_t _times_r(struct _reent* r, struct tms *buf) {
 	clock_t time = (clock_t)(cpu_tsc() / (__cpu_frequency / LINUX_CLOCKS_PER_SEC));
-	
+
 	if(buf) {
 		buf->tms_utime = time;
 		buf->tms_stime = 0;
 		buf->tms_cutime = 0;
 		buf->tms_cstime = 0;
 	}
-	
+
 	return time;
 }
 
@@ -200,7 +199,7 @@ void* _malloc_r(struct _reent* r, size_t size) {
 	void* ptr = malloc_ex(size, __malloc_pool);
 	if(!ptr)
 		ptr = gmalloc(size);
-	
+
 	return ptr;
 }
 
@@ -228,7 +227,7 @@ void* _calloc_r(struct _reent* r, size_t nmemb, size_t size) {
 	void* ptr = calloc_ex(nmemb, size, __malloc_pool);
 	if(!ptr)
 		return gcalloc(nmemb, size);
-		
+
 }
 
 // GNU C ctype.h imitation
@@ -338,15 +337,15 @@ struct _IO_FILE* stderr;
 int _IO_putc(int ch, struct _IO_FILE* fp) {
 	struct _reent *ptr = _REENT;
 	_REENT_SMALL_CHECK_INIT (ptr);
-	
+
 	if(fp == stdout) {
 		return putc(ch, _stdout_r (ptr));
 	}
-	
+
 	if(fp == stderr) {
 		return putc(ch, _stderr_r (ptr));
 	}
-	
+
 	return -1;
 }
 
@@ -363,7 +362,7 @@ int __printf_chk (int flag, const char *fmt, ...) {
 	int ret;
 	va_list ap;
 	struct _reent *ptr = _REENT;
-	
+
 	_REENT_SMALL_CHECK_INIT (ptr);
 	va_start (ap, fmt);
 	ret = _vfprintf_r (ptr, _stdout_r (ptr), fmt, ap);
@@ -389,11 +388,11 @@ int __isoc99_scanf(const char *format, ...) {
 	int ret;
 	va_list ap;
 	struct _reent *ptr = _REENT;
-	
+
 	va_start(ap, format);
 	ret = _vscanf_r(ptr, format, ap);
 	va_end(ap);
-	
+
 	return ret;
 }
 
@@ -401,11 +400,11 @@ int __isoc99_sscanf(const char *str, const char *format, ...) {
 	int ret;
 	va_list ap;
 	struct _reent *ptr = _REENT;
-	
+
 	va_start(ap, format);
 	ret = _vsscanf_r(ptr, str, format, ap);
 	va_end(ap);
-	
+
 	return ret;
 }
 

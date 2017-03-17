@@ -257,7 +257,7 @@ static void storage_md5_handler(RPC* rpc, uint32_t id, uint64_t size, void* cont
 // PCB utility
 static int pcb_read(RPC* rpc, void* buf, int size) {
 	RPCData* data = (RPCData*)rpc->data;
-	
+
 	int idx = 0;
 	ListIterator iter;
 	list_iterator_init(&iter, data->pbufs);
@@ -279,7 +279,7 @@ static int pcb_read(RPC* rpc, void* buf, int size) {
 
 static int pcb_write(RPC* rpc, void* buf, int size) {
 	RPCData* data = (RPCData*)rpc->data;
-	
+
 	int len = tcp_sndbuf(data->pcb);
 	len = len > size ? size : len;
 
@@ -305,13 +305,13 @@ static err_t manager_accept(void* arg, struct tcp_pcb* pcb, err_t err) {
 	struct tcp_pcb_listen* server = arg;
 	tcp_accepted(server);
 	printf("Accepted: %p\n", pcb);
-	
+
 	RPC* rpc = malloc(sizeof(RPC) + sizeof(RPCData));
 	bzero(rpc, sizeof(RPC) + sizeof(RPCData));
 	rpc->read = pcb_read;
 	rpc->write = pcb_write;
 	rpc->close = pcb_close;
-	
+
 	rpc_vm_create_handler(rpc, vm_create_handler, NULL);
 	rpc_vm_get_handler(rpc, vm_get_handler, NULL);
 	rpc_vm_set_handler(rpc, vm_set_handler, NULL);
@@ -323,18 +323,18 @@ static err_t manager_accept(void* arg, struct tcp_pcb* pcb, err_t err) {
 	rpc_storage_upload_handler(rpc, storage_upload_handler, NULL);
 	rpc_stdio_handler(rpc, stdio_handler, NULL);
 	rpc_storage_md5_handler(rpc, storage_md5_handler, NULL);
-	
+
 	RPCData* data = (RPCData*)rpc->data;
 	data->pcb = pcb;
 	data->pbufs = list_create(NULL);
-	
+
 	tcp_arg(pcb, rpc);
 	tcp_recv(pcb, manager_recv);
 	tcp_err(pcb, manager_err);
 	tcp_poll(pcb, manager_poll, 2);
-	
+
 	list_add(clients, pcb);
-	
+
 	return ERR_OK;
 }
 
@@ -349,7 +349,7 @@ static Packet* manage(Packet* packet) {
 //		return NULL;
 //	else if(tftp_process(packet))
 //		return NULL;
-	
+
 	return packet;
 }
 
@@ -373,18 +373,18 @@ static void stdio_callback(uint32_t vmid, int thread_id, int fd, char* buffer, v
 	while(list_iterator_has_next(&iter)) {
 		struct tcp_pcb* pcb = list_iterator_next(&iter);
 		RPC* rpc = pcb->callback_arg;
-	
+
 		if(wrapped) {
 			rpc_stdio(rpc, vmid, thread_id, fd, buffer + *head, len1, NULL, NULL);
 			rpc_stdio(rpc, vmid, thread_id, fd, buffer, len2, NULL, NULL);
 
 		} else {
 			rpc_stdio(rpc, vmid, thread_id, fd, buffer + *head, len0, NULL, NULL);
-		}	
-		
+		}
+
 		rpc_loop(rpc);
 	}
-	
+
 	if(wrapped) {
 		*head = (*head + len1 + len2) % size;
 	} else {
@@ -395,24 +395,24 @@ static void stdio_callback(uint32_t vmid, int thread_id, int fd, char* buffer, v
 static bool manager_server_open() {
 	struct ip_addr ip;
 	IP4_ADDR(&ip, (manager_ip >> 24) & 0xff, (manager_ip >> 16) & 0xff, (manager_ip >> 8) & 0xff, (manager_ip >> 0) & 0xff);
-	
+
 	manager_server = tcp_new();
-	
+
 	err_t err = tcp_bind(manager_server, &ip, manager_port);
 	if(err != ERR_OK) {
 		printf("ERROR: Manager cannot bind TCP session: %d\n", err);
 
 		return false;
 	}
-	
+
 	manager_server = tcp_listen(manager_server);
 	tcp_arg(manager_server, manager_server);
-	
-	printf("Manager started: %d.%d.%d.%d:%d\n", (manager_ip >> 24) & 0xff, (manager_ip >> 16) & 0xff, 
+
+	printf("Manager started: %d.%d.%d.%d:%d\n", (manager_ip >> 24) & 0xff, (manager_ip >> 16) & 0xff,
 		(manager_ip >> 8) & 0xff, (manager_ip >> 0) & 0xff, manager_port);
-	
+
 	tcp_accept(manager_server, manager_accept);
-	
+
 	if(clients == NULL)
 		clients = list_create(NULL);
 
@@ -443,7 +443,7 @@ static bool manager_server_close() {
 }
 static bool manager_loop(void* context) {
 	nic_poll();
-	
+
 	if(!list_is_empty(actives)) {
 		ListIterator iter;
 		list_iterator_init(&iter, actives);
@@ -456,18 +456,18 @@ static bool manager_loop(void* context) {
 			}
 		}
 	}
-	
+
 	return true;
 }
 
 static bool manager_timer(void* context) {
 	nic_timer();
-	
+
 	return true;
 }
 
 void manager_init() {
-	uint64_t attrs[] = { 
+	uint64_t attrs[] = {
 		NIC_MAC, manager_mac, // Physical MAC
 		NIC_DEV, (uint64_t)"eth0",
 		NIC_POOL_SIZE, 0x400000,
@@ -481,7 +481,7 @@ void manager_init() {
 		NIC_OUTPUT_ACCEPT_ALL, 1,
 		NIC_NONE
 	};
-	
+
 	manager_nic = vnic_create(attrs);
 	if(!manager_nic) {
 		printf("\tCannot create manager\n");
@@ -505,17 +505,17 @@ void manager_init() {
 		return;
 	}
 	manager_port = DEFAULT_MANAGER_PORT;
-	
+
 	// Dynamic configuration
 	dhcp_init(manager_nic->nic);
 
 	manager_netif = nic_init(manager_nic->nic, manage, NULL);
-	
+
 	manager_server_open();
-	
+
 	event_idle_add(manager_loop, NULL);
 	event_timer_add(manager_timer, NULL, 100000, 100000);
-	
+
 	vm_stdio_handler(stdio_callback);
 }
 

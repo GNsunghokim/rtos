@@ -1,8 +1,6 @@
 ; Ref: http://os.phil-opp.com/
 ; Ref: http://download-mirror.savannah.gnu.org/releases/grub/phcoder/multiboot.pdf
 
-%define	GDTR		0x$GDTR$		; gdtr - 0x10000
-%define PROTECTEDMODE	0x$PROTECTMODE$		; protectedmode
 %define STACK_SIZE	256
 %define CORE_COUNT	16
 
@@ -11,27 +9,29 @@ global gdtr
 global lgdt
 global change_cs
 
-[bits 32]
+[bits 16]
 section .entry
 	mov	ecx, cr0
 	and	ecx, 1
 	jnz	start
-	
-[bits 16]
+
 	mov	ax, 0x1000
 	mov	ds, ax
 	mov	es, ax
-	
+
 	cli
-	lgdt	[GDTR]
-	
+	; Load GDTR symbol address by real mode addressing
+	; cs register is 0x1000 now, so we have to subtract 0x10000
+	lgdt	[dword gdtr - 0x10000]
+
 	; Change to protected mode
-	mov	eax, cr0 
+	mov	eax, cr0
 	or	eax, 1				; PE=1
 	mov	cr0, eax
-	
-	jmp	dword 0x18:PROTECTEDMODE
-	
+
+	; Far jump to protected mode symbol by linear addressing
+	jmp	dword 0x18:protectedmode
+
 [bits 32]
 	align	8, db 0
 
@@ -40,7 +40,7 @@ header_start:
 	dd	0				; architecture 0 (i386)
 	dd	header_end - header_start	;
 	dd	0x100000000 - (0xe85250d6 + 0 + (header_end - header_start))	; checksum
-	
+
 	; Information request
 	align	8, db 0
 .info_start:
@@ -52,7 +52,7 @@ header_start:
 	dd	5				; bootdev
 	dd	6				; mmap
 .info_end:
-	
+
 	; Entry address header
 .addr_start:
 	align	8, db 0
@@ -61,7 +61,7 @@ header_start:
 	dd	.addr_end - .addr_start
 	dd	0x10000
 .addr_end:
-	
+
 	; End of multiboot header
 	align	8, db 0
 	dw	0				; type
@@ -76,7 +76,7 @@ protectedmode:
 	mov	fs, ax
 	mov	gs, ax
 	mov	ss, ax
-	
+
 	jmp	dword 0x18:start
 
 start:
@@ -107,7 +107,7 @@ next:
 	call	main
 
 	jmp	0x08:0x200000   ; Jump to kernel64
-	
+
 .loop:
 	hlt
 	jmp .loop
@@ -135,7 +135,7 @@ align 8, db 0
 
 gdtr:
 	dw	gdtend - gdt - 1	; GDT size
-	dd	gdt			; GDT address
+	dd	gdt ; GDT address
 
 gdt:
 	; null descriptor
@@ -145,7 +145,7 @@ gdt:
 	db	0x00
 	db	0x00
 	db	0x00
-	
+
 	; kernel code segment descriptor
 	dw	0xffff	; limit 15:0
 	dw	0x0000	; base 15:0
@@ -153,7 +153,7 @@ gdt:
 	db	0x9a	; p=1, dpl=0, code segment, execute/read
 	db	0xaf	; g=1, d=0, l=1, limit 19:16
 	db	0x00	; base 31:24
-	
+
 	; kernel data segment descriptor
 	dw	0xffff	; limit 15:0
 	dw	0x0000	; base 15:0
@@ -161,7 +161,7 @@ gdt:
 	db	0x92	; p=1, dpl=0, data segment, read/write
 	db	0xaf	; g=1, d=0, l=1, limit 19:16
 	db	0x00	; base 31:24
-	
+
 	; loader code segment descriptor
 	dw	0xffff	; limit 15:0
 	dw	0x0000	; base 15:0
@@ -169,7 +169,7 @@ gdt:
 	db	0x9a	; p=1, dpl=0, code segment, read/write
 	db	0xcf	; g=1, d=1, l=0, limit 19:16
 	db	0x00	; base 31:24
-	 
+
 	; loader data segment descriptor
 	dw	0xffff	; limit 15:0
 	dw	0x0000	; base 15:0

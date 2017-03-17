@@ -1,3 +1,4 @@
+#!/usr/bin/lua
 -- [[ Premake script for kernel workspace ]] 
 workspace "Kernel"
 
@@ -6,11 +7,12 @@ workspace "Kernel"
 
     -- Assembly compiler build commands --
     filter 'files:**.asm'
-        buildmessage 'Compiling %{file.relpath}'
-        buildcommands {
+        buildmessage
+            'Compiling %{file.relpath}'
+        buildcommands
             'nasm -f elf64 -o "%{cfg.objdir}/%{file.basename}.o" "%{file.relpath}"'
-        }
-        buildoutputs { '%{cfg.objdir}/%{file.basename}.o' }
+        buildoutputs
+            '%{cfg.objdir}/%{file.basename}.o'
 
     -- [[ 1. Core library ]]
     project "core"

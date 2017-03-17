@@ -11,9 +11,9 @@
 #ifndef _TFFS_H
 #define _TFFS_H
 
-#include <fs.h>
-#include <../gmalloc.h>
-#include <../malloc.h>
+#include <driver/fs.h>
+#include <gmalloc.h>
+#include <malloc.h>
 #include "comdef.h"
 
 #include <util/list.h>

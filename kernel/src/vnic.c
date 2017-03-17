@@ -45,7 +45,7 @@ Device* nic_parse_index(char* _argv, uint16_t* port) {
 	Device* dev = NULL;
 	uint16_t nic_count = device_count(DEVICE_TYPE_NIC);
 	for(int i = 0; i < nic_count; i++) {
-		if(*port < ((NICInfo*)nic_devices[i]->priv)->port_count) { 
+		if(*port < ((NICInfo*)nic_devices[i]->priv)->port_count) {
 			dev = nic_devices[i];
 			break;
 		} else {
@@ -144,7 +144,7 @@ VNIC* vnic_create(uint64_t* attrs) {
 
 	errno = 0;
 
-	if(!has_key(NIC_DEV) || !has_key(NIC_MAC) || !has_key(NIC_POOL_SIZE) || 
+	if(!has_key(NIC_DEV) || !has_key(NIC_MAC) || !has_key(NIC_POOL_SIZE) ||
 			!has_key(NIC_INPUT_BANDWIDTH) || !has_key(NIC_OUTPUT_BANDWIDTH) ||
 			!has_key(NIC_INPUT_BUFFER_SIZE) || !has_key(NIC_OUTPUT_BUFFER_SIZE)) {
 		errno = 1;
@@ -351,7 +351,7 @@ void vnic_destroy(VNIC* vnic) {
 bool vnic_contains(char* nic_dev, uint64_t mac) {
 	if(!nic_dev)
 		return false;
-	
+
 	uint16_t port = 0;
 	Device* dev = nic_parse_index(nic_dev, &port);
 	if(!dev) {
@@ -386,7 +386,7 @@ uint32_t vnic_update(VNIC* vnic, uint64_t* attrs) {
 		while(attrs[i * 2] != NIC_NONE) {
 			if(attrs[i * 2] == key)
 				return true;
-			
+
 
 			i++;
 		}
@@ -585,6 +585,15 @@ succeed:
 
 	// NIC_POOL_SIZE
 	if(pools) {
+		/*
+		 *Iterator* iter = pools->iter;
+		 *LinkedListIterContext context;
+		 *iter->init(&context);
+		 *while(iter->has_next(&context)) {
+		 *        iter->remove(&conext);
+		 *}
+		 */
+
 		ListIterator iter;
 
 		list_iterator_init(&iter, pools);
@@ -898,10 +907,10 @@ dropped:
 		VNIC* vnic = map_get(vnics, (void*)dmac);
 		if(!vnic)
 			vnic = map_get(vnics, (void*)(uint64_t)0xffffffffffff);
-		
+
 		if(!vnic)
 			return;
-		
+
 		if(input(vnic))
 			nic_rx++;
 	}
@@ -965,10 +974,10 @@ Packet* nic_process_output(uint8_t local_port) {
 				// Packet eliminated
 				continue;
 			}
-			
+
 			if(vnic->mac != 0xffffffffffff)
 				ether->smac = endian48(vnic->mac);	// Fix mac address
-			
+
 #if DEBUG
 			uint64_t smac = endian48(ether->smac);
 			printf("Output: [%02d] %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x\n",

@@ -1,5 +1,6 @@
 -- [[ Premake script for kernel workspace ]] 
 workspace "Kernel"
+    configurations  { 'debug', 'release' }
 
     -- Assembly compiler build commands --
     -- Since there are no implicit compile commands for assembly files. We have to designate it

@@ -415,7 +415,7 @@ void main(void) {
 		cpu_init();
 		shared_init();
 		gmalloc_init(RAMDISK_ADDR, initrd_end - initrd_start);
-		timer_init(cpu_brand);
+		timer_init();
 
 		gdt_init();
 		tss_init();

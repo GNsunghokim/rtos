@@ -11,7 +11,7 @@
 #ifndef _PUB_STRUCT_H
 #define _PUB_STRUCT_H
 
-#include <fs.h>
+#include <driver/fs.h>
 #include "comdef.h"
 #include "crtdef.h"
 #include "cache.h"

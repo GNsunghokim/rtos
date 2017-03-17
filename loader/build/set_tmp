@@ -1,4 +1,0 @@
-cp ../src/entry.asm ../src/entry_tmp.asm
-
-sed -i -- 's/\$GDTR\$/0000/g' ../src/entry_tmp.asm
-sed -i -- 's/\$PROTECTMODE\$/0000/g' ../src/entry_tmp.asm
