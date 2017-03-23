@@ -2,7 +2,7 @@ project 'kernel'
     kind 'ConsoleApp'
 
     build.compileProperty('x86_64')
-    build.linkingProperty { 'core', 'tlsf', 'lwip' }
+    build.linkingProperty { 'ext', 'tlsf', 'lwip' }
 
     targetname      'kernel.elf'
     buildoptions    { '-mcmodel=kernel' }

@@ -1,6 +1,6 @@
 [bits 64]
 
-section .text
+section .entry
 
 extern main
 

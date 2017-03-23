@@ -2,7 +2,6 @@
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 OUTPUT_ARCH(i386:x86-64)
 ENTRY(_start)
-STARTUP(obj/entry.o)
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
@@ -10,6 +9,7 @@ SECTIONS
 /*********************************************************************************/
   .text 0xffffffff80200000 :
   {
+    *(.entry)
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)

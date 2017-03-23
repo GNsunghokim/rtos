@@ -1,14 +1,18 @@
-project 'core'
+--include 'doc'
+
+project 'ext'
     kind 'StaticLib'
 
     build.compileProperty('x86_64')
     build.linkingProperty { 'tlsf' }
+    build.targetPath('..')
 
-    postbuildcommands {
-        -- "doxygen doxyfiles/Doxyfile",
-        -- "make -C doc/latex",
-        -- "doc/latexy/refman.pdf"
-    }
+    filter { 'configurations:linux' }
+        defines     { 'LINUX' }
+        removefiles { 'src/malloc.c' }
+    filter {}
+
+
 
 --[[
    [group "tests"

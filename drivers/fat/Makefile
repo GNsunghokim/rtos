@@ -12,25 +12,28 @@ endif
 
 ifeq ($(config),debug)
   RESCOMP = windres
-  TARGETDIR = .
-  TARGET = $(TARGETDIR)/libfat.ko.a
+  TARGETDIR = bin/debug
+  TARGET = $(TARGETDIR)/fat.ko
   OBJDIR = obj/debug
   DEFINES +=
-  INCLUDES += -I../../kernel/src -I../../lib/core/include
+  INCLUDES += -I../../kernel/src -I../../lib/ext/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -ffreestanding -std=gnu99 -mcmodel=kernel
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -ffreestanding -std=gnu99 -Wno-unused-parameter -mcmodel=kernel
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -nostdlib -r ../linux.ko
-  LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running postbuild commands
+	ln -sfrv bin/debug/fat.ko .
+	ln -sfrv bin/debug/fat.ko ..
   endef
 all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 	@:
@@ -39,25 +42,58 @@ endif
 
 ifeq ($(config),release)
   RESCOMP = windres
-  TARGETDIR = .
-  TARGET = $(TARGETDIR)/libfat.ko.a
+  TARGETDIR = bin/release
+  TARGET = $(TARGETDIR)/fat.ko
   OBJDIR = obj/release
   DEFINES +=
-  INCLUDES += -I../../kernel/src -I../../lib/core/include
+  INCLUDES += -I../../kernel/src -I../../lib/ext/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wall -Wextra -ffreestanding -std=gnu99 -mcmodel=kernel
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wall -Wextra -ffreestanding -std=gnu99 -Wno-unused-parameter -mcmodel=kernel
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -nostdlib -r ../linux.ko
-  LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running postbuild commands
+	ln -sfrv bin/release/fat.ko .
+	ln -sfrv bin/release/fat.ko ..
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),linux)
+  RESCOMP = windres
+  TARGETDIR = bin/linux
+  TARGET = $(TARGETDIR)/fat.ko
+  OBJDIR = obj/linux
+  DEFINES +=
+  INCLUDES += -I../../kernel/src -I../../lib/ext/include
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Wall -Wextra -ffreestanding -std=gnu99 -Wno-unused-parameter -mcmodel=kernel
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -nostdlib -r ../linux.ko
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+	@echo Running postbuild commands
+	ln -sfrv bin/linux/fat.ko .
+	ln -sfrv bin/linux/fat.ko ..
   endef
 all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 	@:

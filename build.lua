@@ -1,5 +1,5 @@
 local includePath = {}
-local function exportPath(lib, paths)
+local function exportIncludePath(lib, paths)
     includePath[lib] = {}
 	for _, path in pairs(paths) do
         local dir = rootPath .. '/lib/' .. lib .. '/' .. path
@@ -8,7 +8,6 @@ local function exportPath(lib, paths)
     end
 end
 
--- Add library linking property
 local function linkingProperty(libs)
     includedirs { './include' }
 
@@ -42,10 +41,13 @@ local function assemblyProperty(format)
 	filter {}
 end
 
+local function targetPath(path)
+    postbuildcommands   { 'ln -sfrv %{cfg.buildtarget.relpath} ' .. path}
+end
+
 local function compileProperty(arch)
     architecture(arch)
     location	'.'
-	targetdir	'.'
 
     files		{ 'src/**.c', 'src/**.asm', 'src/**.S' }
 	removefiles { 'src/test/**.c', 'src/test/**.asm' }
@@ -59,14 +61,17 @@ local function compileProperty(arch)
 	end
 
     assemblyProperty(format)
+    targetPath('.')
 end
 
 -- Build.lua interface
 return {
+    -- Add additonal target path
+    targetPath          = targetPath,
     -- Export custom include path
-    exportPath = exportPath,
+    exportIncludePath   = exportIncludePath,
     -- Add default compile property
-    compileProperty = compileProperty,
+    compileProperty     = compileProperty,
     -- Add default linking property
-    linkingProperty = linkingProperty
+    linkingProperty     = linkingProperty,
 }

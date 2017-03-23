@@ -1,6 +1,8 @@
+configurations { 'linux' }
+
 include 'tlsf'
+include 'ext'
 include 'lwip'
-include 'core'
 
 project 'lib'
     kind        'Makefile'
@@ -8,15 +10,18 @@ project 'lib'
 
     buildcommands {
         'make -C tlsf',
-        'make -C core',
+        'make -C ext',
         'make -C lwip',
 
-        'make -f extern.make'
+        'make -f extern.mk',
+        'make -f archive.mk'
     }
 
     cleancommands {
-        'make clean -C core',
+        'make clean -C tlsf',
+        'make clean -C ext',
         'make clean -C lwip',
 
-        'make -f extern.make clean'
+        'make -f extern.mk clean',
+        'make -f archive.mk clean',
     }

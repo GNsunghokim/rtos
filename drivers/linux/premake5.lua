@@ -1,8 +1,10 @@
 project 'linux'
-    kind        'StaticLib'
+    kind        'ConsoleApp'
     targetname  'linux.ko'
 
     build.compileProperty('x86_64')
+    build.targetPath('..')
 
-    includedirs { '.', '../../kernel/src', '../../lib/core/include' }
+    linkoptions { '-r' }
+    includedirs { '.', '../../kernel/src', '../../lib/ext/include' }
     removefiles { 'packetngin/**.c' }

@@ -11,7 +11,7 @@ workspace 'PacketNgin'
     filter {}
 
     warnings        'Extra'
-    buildoptions    '-ffreestanding -std=gnu99'
+    buildoptions    '-ffreestanding -std=gnu99 -Wno-unused-parameter'
     linkoptions     '-nostdlib'
 
 include 'lib'
@@ -28,14 +28,14 @@ project 'build'
         'make -C lib',
         'make -C tools',
 
-        --'bin/premake5 --file=image.lua',
+        --'bin/lua image.lua build',
     }
 
     cleancommands {
         'make clean -C loader',
         'make clean -C kernel',
         'make clean -C lib',
-        'make clean -C tools'
+        'make clean -C tools',
 
-        --'rm -rf kernel.smap kernel.bin system.img'
+        --'bin/lua image.lua clean'
     }
