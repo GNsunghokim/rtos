@@ -1,15 +1,15 @@
 [submodule "drivers/rtos_commercial"]
 	path = drivers/rtos_commercial
-	url = git@github.com:gurumnet/rtos-commercial.git
+	url = https://github.com/gurumnet/rtos-commercial.git
 	ignore = dirty
 
 [submodule "tools/grub"]
 	path = tools/grub
-	url = git://git.savannah.gnu.org/grub.git 
+	url = https://git.savannah.gnu.org/grub.git
 	ignore = dirty
 
 [submodule "tools/cmocka"]
 	path = tools/cmocka
-	url = git://git.cryptomilk.org/projects/cmocka.git
+	url = https://git.cryptomilk.org/projects/cmocka.git
 	ignore = dirty
 
