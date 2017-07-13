@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/time.h>
-#include <util/event.h>
-#include <termios.h>
+
 #include "input.h"
+#include "../io_mux.h"
 #include "../stdio.h"
 
 static bool output_enabled;
@@ -14,17 +12,11 @@ static int init(void* device, void* data) {
 	if(output_enabled)
 		return 0; // Already enabled 
 
-	struct termios termios;
-	tcgetattr(STDIN_FILENO, &termios);
-	termios.c_lflag &= ~(ICANON | ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &termios);
-
 	output_enabled = true;
 	return 0;
 }
 
 static void destroy(int id) {
-	system("stty echo");
 }
 
 static int _write(int id, const char* buf, int len) {
@@ -32,8 +24,6 @@ static int _write(int id, const char* buf, int len) {
 		return -1;
 
 	while(len) {
-		//FIXME stdout bug???
-		//Can't flush stdout buffer
 		len -= write(STDOUT_FILENO, buf, len);
 	}
 
@@ -75,47 +65,33 @@ CharOut output_driver = {
 	.is_render = is_render
 };
 
-static bool event(void* context) {
-	// Non-block select
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	char a;
-
-	struct termios termios;
-	tcgetattr(STDIN_FILENO, &termios);
-	termios.c_lflag &= ~(ICANON | ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &termios);
-
-	fd_set temp;
-	fsync(STDIN_FILENO);
-	FD_ZERO(&temp);
-	FD_SET(STDIN_FILENO, &temp);
-	int ret = select(STDIN_FILENO + 1, (fd_set*)&temp, NULL, NULL, &tv);
-	if(ret == -1) {
-		perror("Selector error");
-		return false;
-	} else if(ret) {
-		if(FD_ISSET(STDIN_FILENO, (fd_set*)&temp) != 0) {
-			read(STDIN_FILENO, &a, 1);
-			if(a == 127 || a == 8) {
-				stdio_putchar('\b');
-				stdio_putchar(' ');
-				stdio_putchar('\b');
-			} else
-				stdio_putchar(a);
-		}
+static char stdin_buffer[4096];
+static int slowpath_read_handler(int fd, void* context) {
+	int len = read(fd, stdin_buffer, 4096 - 1);
+	for(int i = 0; i < len; i++) {
+		stdio_putchar(stdin_buffer[i]);
 	}
 
-	if(callback)
-		callback();
+	if(callback) callback();
 
-	return true;
+	return 0;
 }
 
+static IOMultiplexer* stdin_io_mux;
 static void set_callback(int id, CharInCallback cb) {
 	callback = cb;
-	event_timer_add(event, NULL, 100000, 100000);
+
+	stdin_io_mux = calloc(1, sizeof(IOMultiplexer));
+	if(!stdin_io_mux) goto error;
+	stdin_io_mux->fd = STDIN_FILENO;
+	stdin_io_mux->read_handler = slowpath_read_handler;
+
+	if(!io_mux_add(stdin_io_mux, (uint64_t)stdin_io_mux)) goto error;
+
+error:
+	if(stdin_io_mux) free(stdin_io_mux);
+
+	return;
 }
 
 DeviceType input_type = DEVICE_TYPE_CHAR_IN;

@@ -31,7 +31,6 @@ static void cmd_callback(char* result, int exit_status) {
 }
 
 void shell_callback() {
-
 	static char cmd[CMD_SIZE];
 	static int cmd_idx = 0;
 	extern Device* device_stdout;
@@ -148,74 +147,3 @@ int shell_init() {
 void shell_sync() {
 	cmd_sync = true;
 }
-
-#define EXEC_NOT_FOUND_FILE	-1
-#define EXEC_ERROR		-2
-#define EXEC_NOT_ENOUGH_BUFFER	1
-#define EXEC_END		0
-
-/*
- *static int exec(char* name) {
- *        static char line[CMD_SIZE];
- *        static size_t head = 0;
- *        static size_t eod = 0;
- *        static size_t seek = 0;
- *        int ret;
- *
- *        int fd = open(name, "r");
- *        if(fd < 0)
- *                return EXEC_NOT_FOUND_FILE;
- *
- *        while((ret = read(fd, &line[eod], CMD_SIZE - eod)) > 0) {
- *                eod += ret;
- *                for(; seek < eod; seek++) {
- *                        if(line[seek] == '\n' || line[seek] == '\0') {
- *                                for(; head < seek; head++) {
- *                                        if(line[head] == ' ')
- *                                                head++;
- *                                        else
- *                                                break;
- *                                }
- *
- *                                if(line[head] == '#') {
- *                                        head = seek + 1;
- *                                        continue;
- *                                }
- *
- *                                if(__stdin_tail >= __stdin_head) {
- *                                        if((seek + 1 - head) > (__stdin_size - ( __stdin_tail - __stdin_head))) {
- *                                                printf("Wrong2 %d %d\n", seek - head, __stdin_size - ( __stdin_tail - __stdin_head));
- *                                                return EXEC_NOT_ENOUGH_BUFFER;
- *                                        }
- *                                } else {
- *                                        if((seek + 1 - head) > (__stdin_head - __stdin_tail)) {
- *                                                printf("Wrong2_2 %d %d\n", seek - head, __stdin_head - __stdin_tail);
- *                                                return EXEC_NOT_ENOUGH_BUFFER;
- *                                        }
- *                                }
- *
- *                                apic_disable();
- *                                for(;head <= seek; head++) {
- *                                        stdio_putchar(line[head]);
- *                                }
- *                                apic_enable();
- *                        }
- *                }
- *
- *                if(head == 0 && eod == CMD_SIZE){
- *                        return EXEC_ERROR;
- *                } else {
- *                        if((eod - head) > 0) {
- *                                memmove(line, &line[head], eod - head);
- *                                eod -= head;
- *                                seek = eod;
- *                                head = 0;
- *                        }
- *                }
- *        }
- *
- *        close(fd);
- *
- *        return EXEC_END;
- *}
- */
